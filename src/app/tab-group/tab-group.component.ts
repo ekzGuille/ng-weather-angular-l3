@@ -1,4 +1,4 @@
-import { Component, ContentChild, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ContentChild, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { TabGroupContentDirective } from './content/tab-group-content.directive';
 import { TabGroupHeaderDirective } from './header/tab-group-header.directive';
 import { NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
@@ -11,7 +11,7 @@ import { NgClass, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
   imports: [TabGroupContentDirective, TabGroupHeaderDirective, NgTemplateOutlet, NgIf, NgForOf, NgClass],
   standalone: true,
 })
-export class TabGroupComponent<T> {
+export class TabGroupComponent<T> implements OnChanges {
   @Input({ required: true }) elements: T[];
   @Output() removedElement = new EventEmitter<T>();
 
@@ -25,6 +25,14 @@ export class TabGroupComponent<T> {
   selectItem(index: number) {
     this.selectedIndex = index;
     window.localStorage.setItem(this.LAST_SELECTED_INDEX_KEY, index.toString());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes !== undefined) {
+      if (changes.elements) {
+        this.selectItem(changes.elements.currentValue.length - 1);
+      }
+    }
   }
 
   removeElement(event: MouseEvent, index: number) {

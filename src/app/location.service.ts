@@ -6,28 +6,27 @@ export const LOCATIONS : string = "locations";
 @Injectable()
 export class LocationService {
 
-  locations : string[] = [];
+  locations: Set<string> = new Set();
 
   constructor(private weatherService : WeatherService) {
     let locString = localStorage.getItem(LOCATIONS);
-    if (locString)
-      this.locations = JSON.parse(locString);
-    for (let loc of this.locations)
+    if (locString) {
+      this.locations = new Set(JSON.parse(locString));
+    }
+    for (let loc of this.locations) {
       this.weatherService.addCurrentConditions(loc);
+    }
   }
 
   addLocation(zipcode : string) {
-    this.locations.push(zipcode);
-    localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
+    this.locations.add(zipcode);
+    localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
     this.weatherService.addCurrentConditions(zipcode);
   }
 
   removeLocation(zipcode : string) {
-    let index = this.locations.indexOf(zipcode);
-    if (index !== -1){
-      this.locations.splice(index, 1);
-      localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
-      this.weatherService.removeCurrentConditions(zipcode);
-    }
+    this.locations.delete(zipcode);
+    localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
+    this.weatherService.removeCurrentConditions(zipcode);
   }
 }

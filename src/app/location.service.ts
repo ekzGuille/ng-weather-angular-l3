@@ -1,32 +1,36 @@
 import { Injectable } from '@angular/core';
-import {WeatherService} from "./weather.service";
+import { ReplaySubject, Subject } from 'rxjs';
 
-export const LOCATIONS : string = "locations";
+export const LOCATIONS: string = "locations";
 
 @Injectable()
 export class LocationService {
 
-  locations: Set<string> = new Set();
+  // Use a Set to avoid repeating zipcodes
+  private locations: Set<string> = new Set();
+  readonly addedLocation$: Subject<string> = new ReplaySubject<string>();
+  readonly removedLocation$: Subject<string> = new Subject<string>();
 
-  constructor(private weatherService : WeatherService) {
-    let locString = localStorage.getItem(LOCATIONS);
+  constructor() {
+    const locString = localStorage.getItem(LOCATIONS);
     if (locString) {
       this.locations = new Set(JSON.parse(locString));
     }
+
     for (let loc of this.locations) {
-      this.weatherService.addCurrentConditions(loc);
+      this.addedLocation$.next(loc);
     }
   }
 
-  addLocation(zipcode : string) {
+  addLocation(zipcode: string) {
     this.locations.add(zipcode);
     localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
-    this.weatherService.addCurrentConditions(zipcode);
+    this.addedLocation$.next(zipcode);
   }
 
-  removeLocation(zipcode : string) {
+  removeLocation(zipcode: string) {
     this.locations.delete(zipcode);
     localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
-    this.weatherService.removeCurrentConditions(zipcode);
+    this.removedLocation$.next(zipcode);
   }
 }

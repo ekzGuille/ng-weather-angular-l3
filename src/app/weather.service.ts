@@ -1,10 +1,13 @@
-import {Injectable, Signal, signal} from '@angular/core';
-import {Observable} from 'rxjs';
+import { Injectable, Signal, signal } from '@angular/core';
+import { EMPTY, Observable } from 'rxjs';
 
-import {HttpClient} from '@angular/common/http';
-import {CurrentConditions} from './current-conditions/current-conditions.type';
-import {ConditionsAndZip} from './conditions-and-zip.type';
-import {Forecast} from './forecasts-list/forecast.type';
+import { HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, tap } from 'rxjs/operators';
+import { ConditionsAndZip } from './conditions-and-zip.type';
+import { CurrentConditions } from './current-conditions/current-conditions.type';
+import { Forecast } from './forecasts-list/forecast.type';
+import { LocationService } from './location.service';
 
 @Injectable()
 export class WeatherService {
@@ -15,12 +18,30 @@ export class WeatherService {
   private currentConditions = signal<ConditionsAndZip[]>([]);
   private country: 'es' | 'us' = 'es';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private readonly locationService: LocationService) {
+    this.locationService.removedLocation$.pipe(
+      tap((zipCode) => this.removeCurrentConditions(zipCode)),
+      takeUntilDestroyed()
+    ).subscribe()
+
+    this.locationService.addedLocation$.pipe(
+      tap((zipCode) => this.addCurrentConditions(zipCode)),
+      takeUntilDestroyed()
+    ).subscribe()
+  }
 
   addCurrentConditions(zipcode: string): void {
     // Here we make a request to get the current conditions data from the API. Note the use of backticks and an expression to insert the zipcode
-    this.http.get<CurrentConditions>(`${WeatherService.URL}/weather?zip=${zipcode},${this.country}&units=imperial&APPID=${WeatherService.APPID}`)
-      .subscribe(data => this.currentConditions.update(conditions => [...conditions, {zip: zipcode, data}]));
+    this.http.get<CurrentConditions>(`${WeatherService.URL}/weather?zip=${zipcode},${this.country}&units=imperial&APPID=${WeatherService.APPID}`).pipe(
+      catchError(() => {
+        // If service fails, remove the location from the list
+        this.locationService.removeLocation(zipcode);
+        return EMPTY;
+      })
+    )
+      .subscribe(data => {
+        this.currentConditions.update(conditions => [...conditions, { zip: zipcode, data }]);
+      });
   }
 
   removeCurrentConditions(zipcode: string) {

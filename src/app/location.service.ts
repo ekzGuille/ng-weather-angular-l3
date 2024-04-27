@@ -23,9 +23,13 @@ export class LocationService {
   }
 
   addLocation(zipcode: string) {
+    const alreadyExists = this.locations.has(zipcode);
     this.locations.add(zipcode);
     localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
-    this.addedLocation$.next(zipcode);
+    // Do not emit if existing. Avoiding duplicates
+    if (!alreadyExists) {
+      this.addedLocation$.next(zipcode);
+    }
   }
 
   removeLocation(zipcode: string) {

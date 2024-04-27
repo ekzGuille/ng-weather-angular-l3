@@ -17,6 +17,7 @@ import { environment } from '../environments/environment';
 import { TabGroupComponent } from './tab-group/tab-group.component';
 import { TabGroupHeaderDirective } from './tab-group/header/tab-group-header.directive';
 import { TabGroupContentDirective } from './tab-group/content/tab-group-content.directive';
+import { EXPIRATION_CACHE, ExpirationCache, HttpCacheService } from './http-cache.service';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,19 @@ import { TabGroupContentDirective } from './tab-group/content/tab-group-content.
     TabGroupHeaderDirective,
     TabGroupContentDirective,
   ],
-  providers: [LocationService, WeatherService],
+  providers: [
+    LocationService,
+    WeatherService,
+    HttpCacheService,
+    {
+      provide: EXPIRATION_CACHE,
+      useValue: {
+        hours: 0,
+        minutes: 0,
+        seconds: 35
+      } as ExpirationCache
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

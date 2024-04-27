@@ -12,7 +12,7 @@ export class LocationService {
   readonly removedLocation$: Subject<string> = new Subject<string>();
 
   constructor() {
-    const locString = localStorage.getItem(LOCATIONS);
+    const locString = window.localStorage.getItem(LOCATIONS);
     if (locString) {
       this.locations = new Set(JSON.parse(locString));
     }
@@ -25,7 +25,7 @@ export class LocationService {
   addLocation(zipcode: string) {
     const alreadyExists = this.locations.has(zipcode);
     this.locations.add(zipcode);
-    localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
+    window.localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
     // Do not emit if existing. Avoiding duplicates
     if (!alreadyExists) {
       this.addedLocation$.next(zipcode);
@@ -34,7 +34,7 @@ export class LocationService {
 
   removeLocation(zipcode: string) {
     this.locations.delete(zipcode);
-    localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
+    window.localStorage.setItem(LOCATIONS, JSON.stringify([...this.locations]));
     this.removedLocation$.next(zipcode);
   }
 }

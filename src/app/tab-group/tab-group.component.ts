@@ -18,7 +18,7 @@ export class TabGroupComponent<T> implements OnChanges {
   @ContentChild(TabGroupHeaderDirective) header: TabGroupHeaderDirective<T>;
   @ContentChild(TabGroupContentDirective) content: TabGroupHeaderDirective<T>;
 
-  private readonly LAST_SELECTED_INDEX_KEY = 'last_selected_index'
+  private readonly LAST_SELECTED_INDEX_KEY = 'last_selected_index';
 
   selectedIndex = Number(window.localStorage.getItem(this.LAST_SELECTED_INDEX_KEY) ?? 0);
 
